@@ -7,10 +7,7 @@ import {
   TextField,
   Button
 } from "@material-ui/core";
-
-// Redux Connection
-import { connect } from "react-redux";
-import { loginUser } from "../../actions/authActions";
+import axios from "axios";
 
 const styles = theme => ({
   navbar: {
@@ -69,36 +66,43 @@ class ResetPass extends Component {
   constructor() {
     super();
     this.state = {
-      email: "",
       password: "",
-      errors: {}
+      password2: "",
+      errors: {},
+      flag: false
     };
     this.onSubmit = this.onSubmit.bind(this);
     this.onChange = this.onChange.bind(this);
   }
 
   componentDidMount() {
-    if (this.props.auth.isAuthenticate) {
+    if (!localStorage.getItem("verificationToken")) {
       this.props.history.push("/");
     }
-  }
-
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.auth.isAuthenticate) {
-      window.history.back();
-    }
-    if (nextProps.errors) {
-      this.setState({ errors: nextProps.errors });
+    if (
+      this.props.match.params.token ===
+      localStorage.getItem("verificationToken")
+    ) {
+      this.setState({
+        flag: true
+      });
     }
   }
 
   onSubmit(e) {
     e.preventDefault();
-    const userData = {
-      email: this.state.email,
+    const resetData = {
+      email: localStorage.getItem("email"),
       password: this.state.password
     };
-    this.props.loginUser(userData, this.props.history);
+    axios
+      .post("/api/resetPassword/editpassword", resetData)
+      .then(res => {
+        localStorage.removeItem("email");
+        localStorage.removeItem("verificationToken");
+        this.props.history.push("/login");
+      })
+      .catch(err => console.log(err));
   }
 
   onChange(e) {
@@ -109,7 +113,8 @@ class ResetPass extends Component {
 
   render() {
     const { classes, errors } = this.props;
-    return (
+    const { flag } = this.state;
+    const resetPassContent = (
       <div style={{ overflowX: "hidden" }}>
         <Grid container direction="vertical" style={{ marginBottom: 40 }}>
           <Grid item container lg={12} style={{ marginTop: 40 }}>
@@ -120,7 +125,7 @@ class ResetPass extends Component {
                 className={classes.typography1}
                 align="center"
               >
-                Password Reset
+                Reset Password
               </Typography>
               <br />
               <Typography
@@ -150,8 +155,6 @@ class ResetPass extends Component {
                       margin="normal"
                       variant="outlined"
                       onChange={this.onChange}
-                      error={errors.password}
-                      helperText={errors.password !== "" ? errors.password : ""}
                     />
                   </Grid>
                   <Grid item lg={4} />
@@ -164,14 +167,12 @@ class ResetPass extends Component {
                       label="Confirm New Password"
                       className={classes.textField}
                       type="password"
-                      name="password"
-                      value={this.state.password}
+                      name="password2"
+                      value={this.state.password2}
                       autoComplete="current-password"
                       margin="normal"
                       variant="outlined"
                       onChange={this.onChange}
-                      error={errors.password}
-                      helperText={errors.password !== "" ? errors.password : ""}
                     />
                   </Grid>
                   <Grid item lg={4} />
@@ -203,22 +204,20 @@ class ResetPass extends Component {
         </Grid>
       </div>
     );
+    const errorContent = (
+      <div style={{ overflowX: "hidden" }}>
+        <Typography variant="h6">Verify Again</Typography>
+        <br />
+        <a href={"/ForgotPassword"}>Go Back To The Verification Page</a>
+      </div>
+    );
+    return flag ? resetPassContent : errorContent;
   }
 }
 
 ResetPass.propTypes = {
   classes: PropTypes.object.isRequired,
-  loginUser: PropTypes.func.isRequired,
-  errors: PropTypes.object.isRequired,
-  auth: PropTypes.object.isRequired
+  errors: PropTypes.object.isRequired
 };
 
-const mapStateToProps = state => ({
-  errors: state.errors,
-  auth: state.auth
-});
-
-export default connect(
-  mapStateToProps,
-  { loginUser }
-)(withStyles(styles)(ResetPass));
+export default withStyles(styles)(ResetPass);

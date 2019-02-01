@@ -12,6 +12,7 @@ const profile = require("./routes/api/profile");
 const package = require("./routes/api/package");
 const offer = require("./routes/api/offer");
 const booklist = require("./routes/api/booklist");
+const resetPassword = require("./routes/api/resetPassword");
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use("/api/package", package);
 app.use("/api/payment", payment);
 app.use("/api/offer", offer);
 app.use("/api/booklist", booklist);
+app.use("/api/resetPassword", resetPassword);
 
 //this is for production time
 //server static assets if in production

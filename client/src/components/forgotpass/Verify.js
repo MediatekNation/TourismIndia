@@ -7,10 +7,7 @@ import {
   TextField,
   Button
 } from "@material-ui/core";
-
-// Redux Connection
-import { connect } from "react-redux";
-import { loginUser } from "../../actions/authActions";
+import axios from "axios";
 
 const styles = theme => ({
   navbar: {
@@ -77,28 +74,26 @@ class Verify extends Component {
     this.onChange = this.onChange.bind(this);
   }
 
-  componentDidMount() {
-    if (this.props.auth.isAuthenticate) {
-      this.props.history.push("/");
-    }
-  }
-
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.auth.isAuthenticate) {
-      window.history.back();
-    }
-    if (nextProps.errors) {
-      this.setState({ errors: nextProps.errors });
-    }
-  }
-
   onSubmit(e) {
     e.preventDefault();
-    const userData = {
-      email: this.state.email,
-      password: this.state.password
+    const verficationData = {
+      email: this.state.email
     };
-    this.props.loginUser(userData, this.props.history);
+    axios.post("/api/resetPassword", verficationData).then(res => {
+      // Save to localStorage
+      // Set token to ls
+      localStorage.setItem("verificationToken", res.data.token);
+      localStorage.setItem("email", res.data.email);
+      if (window.confirm(res.data.message)) {
+        if (verficationData.email !== "") {
+          window.open(
+            "https://www.google.com/gmail",
+            "_blank",
+            "toolbar=yes,scrollbars=yes,resizable=yes,top=100,left=200,width=1000,height=600"
+          );
+        }
+      }
+    });
   }
 
   onChange(e) {
@@ -150,8 +145,6 @@ class Verify extends Component {
                       margin="normal"
                       variant="outlined"
                       onChange={this.onChange}
-                      error={errors.email}
-                      helperText={errors.email !== "" ? errors.email : ""}
                     />
                   </Grid>
                   <Grid item lg={4} />
@@ -171,49 +164,7 @@ class Verify extends Component {
                         className={classes.button}
                         onClick={this.onSubmit}
                       >
-                        Send One Time Password
-                      </Button>
-                    </label>
-                  </Grid>
-                  <Grid item lg={4} />
-                </Grid>
-
-                <Grid container item lg={12}>
-                  <Grid item lg={4} />
-                  <Grid item lg={4}>
-                    <TextField
-                      id="outlined-password-input"
-                      label="One Time Password"
-                      className={classes.textField}
-                      type="text"
-                      name="password"
-                      value={this.state.password}
-                      autoComplete="current-password"
-                      margin="normal"
-                      variant="outlined"
-                      onChange={this.onChange}
-                      error={errors.password}
-                      helperText={errors.password !== "" ? errors.password : ""}
-                    />
-                  </Grid>
-                  <Grid item lg={4} />
-                </Grid>
-                <Grid container item lg={12}>
-                  <Grid item lg={4} />
-                  <Grid item lg={4}>
-                    <input
-                      className={classes.input}
-                      id="contained-button-submit"
-                      type="submit"
-                    />
-                    <label htmlFor="contained-button-submit">
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        className={classes.button}
-                        onClick={this.onSubmit}
-                      >
-                        Verify
+                        Send Verfication Email
                       </Button>
                     </label>
                   </Grid>
@@ -230,17 +181,7 @@ class Verify extends Component {
 
 Verify.propTypes = {
   classes: PropTypes.object.isRequired,
-  loginUser: PropTypes.func.isRequired,
-  errors: PropTypes.object.isRequired,
-  auth: PropTypes.object.isRequired
+  errors: PropTypes.object.isRequired
 };
 
-const mapStateToProps = state => ({
-  errors: state.errors,
-  auth: state.auth
-});
-
-export default connect(
-  mapStateToProps,
-  { loginUser }
-)(withStyles(styles)(Verify));
+export default withStyles(styles)(Verify);

@@ -81,7 +81,7 @@ class App extends Component {
               <Route exact path="/ForgotPassword" component={Verify} />
               <Route exact path="/Register" component={Register} />
               <Route exact path="/ViewDetails/*" component={ViewDetails} />
-              <Route exact path="/ResetPass" component={ResetPass} />
+              <Route exact path="/ResetPass/:token" component={ResetPass} />
             </div>
             <Footer />
           </div>
